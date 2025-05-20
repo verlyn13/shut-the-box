@@ -22,18 +22,24 @@ jobs:
         run: |
           rye pin ${{ matrix.python-version }}
           rye sync
+        working-directory: shut_the_box_sim
       - name: Activate Rye shell
         run: echo "source $(rye env info --shell)" >> $GITHUB_ENV
+        working-directory: shut_the_box_sim
       - name: Install test system dependencies
         run: sudo apt-get update && sudo apt-get install -y python3-dev
       - name: Show Rye info
         run: rye --version && rye env info
+        working-directory: shut_the_box_sim
       - name: Lint
-        run: cd shut_the_box_sim && rye run lint
+        run: rye run lint
+        working-directory: shut_the_box_sim
       - name: Typecheck
-        run: cd shut_the_box_sim && rye run typecheck
+        run: rye run typecheck
+        working-directory: shut_the_box_sim
       - name: Test (with coverage)
-        run: cd shut_the_box_sim && rye run test-cov
+        run: rye run test-cov
+        working-directory: shut_the_box_sim
       - name: Upload coverage html report
         uses: actions/upload-artifact@v4
         with:
