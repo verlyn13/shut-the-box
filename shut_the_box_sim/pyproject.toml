@@ -1,0 +1,67 @@
+[project]
+name = "stbsim"
+version = "0.1.0"
+description = "Shut the Box game simulation library"
+authors = [
+    { name = "verlyn13", email = "jeffreyverlynjohnson@gmail.com" }
+]
+dependencies = []
+readme = "README.md"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.1",
+    "ruff>=0.11.10",
+    "black>=23.12.0",
+    "mypy>=1.10.1",
+    "pre-commit>=4.2.0",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/stbsim"]
+
+
+# ------------
+# Pytest config (for src/ layout, coverage, organized test discovery)
+# ------------
+[tool.rye.scripts]
+# All commands assume run from shut_the_box_sim/ project root
+lint-ruff = "ruff check . --force-exclude"
+lint-black = "black --check ."
+lint = "sh scripts/lint.sh"
+autofix = "sh scripts/autofix.sh"
+format = "black . && ruff format ."
+typecheck = "mypy src tests"
+test = "pytest"
+test-cov = "pytest --cov=stbsim --cov-report=term-missing --cov-report=html:reports/coverage_html --cov-fail-under=80 tests"
+precommit-run = "pre-commit run --all-files"
+precommit-install = "pre-commit install"
+[tool.pytest.ini_options]
+minversion = "8.3.5"
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = [
+    "--import-mode=importlib",
+    "-ra",
+    "--strict-config",
+    "--strict-markers",
+    "--cov=stbsim",
+    "--cov-report=term-missing",
+    "--cov-report=html:reports/coverage_html",
+    "--cov-fail-under=80"
+]
+markers = [
+    "slow: marks tests as slow to run (deselect with -m 'not slow')",
+    "integration: marks integration tests",
+    "api: marks tests related to API endpoints",
+]

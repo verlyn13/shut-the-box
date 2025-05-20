@@ -1,0 +1,41 @@
+# GitHub Actions CI for Shut the Box (shut_the_box_sim)
+# Runs Rye-managed lint, typecheck, and test (with coverage) on push/PR.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rye
+        uses: eifinger/setup-rye@v3
+      - name: Use correct Python version for Rye
+        run: |
+          rye pin ${{ matrix.python-version }}
+          rye sync
+      - name: Activate Rye shell
+        run: echo "source $(rye env info --shell)" >> $GITHUB_ENV
+      - name: Install test system dependencies
+        run: sudo apt-get update && sudo apt-get install -y python3-dev
+      - name: Show Rye info
+        run: rye --version && rye env info
+      - name: Lint
+        run: cd shut_the_box_sim && rye run lint
+      - name: Typecheck
+        run: cd shut_the_box_sim && rye run typecheck
+      - name: Test (with coverage)
+        run: cd shut_the_box_sim && rye run test-cov
+      - name: Upload coverage html report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-python${{ matrix.python-version }}
+          path: shut_the_box_sim/reports/coverage_html/
