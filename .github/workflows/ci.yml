@@ -23,9 +23,6 @@ jobs:
           rye pin ${{ matrix.python-version }}
           rye sync
         working-directory: shut_the_box_sim
-      - name: Activate Rye shell
-        run: echo "source $(rye env info --shell)" >> $GITHUB_ENV
-        working-directory: shut_the_box_sim
       - name: Install test system dependencies
         run: sudo apt-get update && sudo apt-get install -y python3-dev
       - name: Show Rye info
