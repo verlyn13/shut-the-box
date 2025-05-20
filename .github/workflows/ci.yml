@@ -25,8 +25,8 @@ jobs:
         working-directory: shut_the_box_sim
       - name: Install test system dependencies
         run: sudo apt-get update && sudo apt-get install -y python3-dev
-      - name: Show Rye info
-        run: rye --version && rye env info
+      - name: Show Rye version
+        run: rye --version
         working-directory: shut_the_box_sim
       - name: Lint
         run: rye run lint
