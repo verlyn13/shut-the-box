@@ -11,7 +11,9 @@ def lint(session):
 @nox.session(reuse_venv=True)
 def typecheck(session):
     session.install("mypy")
-    session.run("mypy", "src/stbsim", "tests/test_core.py")
+    # Only include specific test files to avoid old/deprecated tests
+    sources = ["src/stbsim", "tests/test_core.py", "tests/__init__.py"]
+    session.run("mypy", *sources)
 
 
 @nox.session(reuse_venv=True)
