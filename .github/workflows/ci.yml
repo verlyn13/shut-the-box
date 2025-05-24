@@ -11,15 +11,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12.9"]
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python (pre-warm for Rye)
+      - name: Setup Python 3.12.9 (matches .python-version)
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12.9"
       - name: Setup Rye
         uses: eifinger/setup-rye@v3
       - name: Sync dependencies with Rye
@@ -45,7 +42,7 @@ jobs:
       - name: Upload coverage html report
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-html-python${{ matrix.python-version }}
+          name: coverage-html-python3.12.9
           path: shut_the_box_sim/reports/coverage_html/
 
   docs:
