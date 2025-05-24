@@ -13,15 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12.9"]
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Python (pre-warm for Rye)
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Setup Rye
         uses: eifinger/setup-rye@v3
-      - name: Use correct Python version for Rye
-        run: |
-          rye pin ${{ matrix.python-version }}
-          rye sync
+      - name: Sync dependencies with Rye
+        run: rye sync
         working-directory: shut_the_box_sim
       - name: Install test system dependencies
         run: sudo apt-get update && sudo apt-get install -y python3-dev
@@ -51,6 +53,10 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Python (matches project .python-version)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.9"
       - name: Setup Rye
         uses: eifinger/setup-rye@v3
       - name: Install Quarto CLI
