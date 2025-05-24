@@ -37,8 +37,33 @@ jobs:
       - name: Test (with coverage)
         run: rye run test-cov
         working-directory: shut_the_box_sim
+      - name: CLI smoke test
+        run: rye run python -m stbsim.cli --n-games 10 --p1-strategy greedy_max --p2-strategy min_tiles --seed 123
+        working-directory: shut_the_box_sim
       - name: Upload coverage html report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html-python${{ matrix.python-version }}
           path: shut_the_box_sim/reports/coverage_html/
+
+  docs:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rye
+        uses: eifinger/setup-rye@v3
+      - name: Install Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+      - name: Sync dependencies
+        run: rye sync
+        working-directory: shut_the_box_sim
+      - name: Render Quarto analysis report
+        run: |
+          cd analysis
+          QUARTO_PYTHON=../shut_the_box_sim/.venv/bin/python quarto render strategy_comparison_basic.qmd
+      - name: Upload generated reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-reports
+          path: analysis/_output/*

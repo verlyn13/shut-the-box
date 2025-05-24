@@ -5,7 +5,9 @@ description = "Shut the Box game simulation library"
 authors = [
     { name = "verlyn13", email = "jeffreyverlynjohnson@gmail.com" }
 ]
-dependencies = []
+dependencies = [
+    "pandas==2.2.3",
+]
 readme = "README.md"
 requires-python = ">=3.11"
 
@@ -18,10 +20,19 @@ managed = true
 dev-dependencies = [
     "pytest>=8.3.5",
     "pytest-cov>=6.1.1",
-    "ruff>=0.11.10",
+    "ruff==0.11.11",
     "black>=23.12.0",
     "mypy>=1.10.1",
     "pre-commit>=4.2.0",
+    "pandas-stubs>=2.2.0",
+    "typer>=0.15.4",
+    "tqdm>=4.67.1",
+    "matplotlib>=3.10.3",
+    "seaborn>=0.13.2",
+    "notebook>=7.4.2",
+    "nbformat>=5.10.4",
+    "ipython>=9.2.0",
+    "types-tqdm>=4.67.0.20250516",
 ]
 
 [tool.hatch.metadata]
@@ -36,16 +47,64 @@ packages = ["src/stbsim"]
 # ------------
 [tool.rye.scripts]
 # All commands assume run from shut_the_box_sim/ project root
-lint-ruff = "ruff check . --force-exclude"
-lint-black = "black --check ."
+
+# Main scripts (use these for development)
 lint = "sh scripts/lint.sh"
 autofix = "sh scripts/autofix.sh"
-format = "black . && ruff format ."
+format = "black . ; ruff format ."
 typecheck = "sh scripts/typecheck.sh"
 test = "pytest"
 test-cov = "pytest --cov=stbsim --cov-report=term-missing --cov-report=html:reports/coverage_html --cov-fail-under=80 tests"
+
+# Individual tool access (for direct usage as per DEVELOPMENT_GUIDE.md)
+# Note: Use `rye run python -m mypy src/stbsim tests/test_core.py tests/__init__.py` for direct mypy
+ruff-check = "ruff check . --force-exclude"
+black-check = "black --check ."
+
+# Pre-commit management
 precommit-run = "pre-commit run --all-files"
 precommit-install = "pre-commit install"
+
+# ------------
+# Black configuration
+# ------------
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# ------------
+# Ruff configuration
+# ------------
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501"]  # line too long, handled by black
+fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]  # ignore assert warnings in tests
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
 [tool.pytest.ini_options]
 minversion = "8.3.5"
 pythonpath = ["src"]
@@ -55,10 +114,6 @@ addopts = [
     "-ra",
     "--strict-config",
     "--strict-markers",
-    "--cov=stbsim",
-    "--cov-report=term-missing",
-    "--cov-report=html:reports/coverage_html",
-    "--cov-fail-under=80"
 ]
 markers = [
     "slow: marks tests as slow to run (deselect with -m 'not slow')",

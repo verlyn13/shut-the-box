@@ -58,13 +58,13 @@ This guide will assume development primarily happens within the `shut_the_box_si
 
 **3. Code Quality & Consistency (Linters & Formatters - S0.3):**
 
-  * **Tools:**
-      * **Black:** For uncompromising code formatting.
-      * **Ruff:** For fast linting, import sorting, and some formatting capabilities.
-  * **Centralized Configuration (`shut_the_box_sim/pyproject.toml`):**
-      * Black: Configure under `[tool.black]`.
-      * Ruff: Configure under `[tool.ruff]` (and its sub-tables like `[tool.ruff.lint]`, `[tool.ruff.format]`).
-      * This ensures all developers, tools, and CI use the same rules.
+  * **Tools:** ✅ **FULLY CONFIGURED**
+      * **Black:** For uncompromising code formatting (88-char line length).
+      * **Ruff 0.11.11:** For fast linting, import sorting, and auto-fixing.
+  * **Configuration:** ✅ **COMPLETE** in `pyproject.toml`
+      * See `CODE_STANDARDS.md` for full configuration details
+      * Black and Ruff use consistent 88-character line limits
+      * Pre-commit hooks enforce same versions in CI
   * **VS Code Integration (for automated linting/formatting):**
       * **Prerequisites:** Each developer using VS Code must:
         1.  Install the official **Python** extension (`ms-python.python`).
@@ -127,9 +127,11 @@ This guide will assume development primarily happens within the `shut_the_box_si
         #         additional_dependencies: [] # Add MyPy plugins if any
         ```
       * Install hooks locally: `cd shut_the_box_sim/ && rye run pre-commit install`.
-  * **Manual Execution (from `shut_the_box_sim/`):**
-      * Format: `rye run black .`
-      * Lint & Auto-fix: `rye run ruff check --fix .` or `rye run ruff format .`
+  * **Manual Execution (from `shut_the_box_sim/`):** ✅ **USE THESE COMMANDS**
+      * **Auto-fix everything:** `rye run autofix` (recommended)
+      * **Check status:** `rye run lint`
+      * **Format only:** `rye run format`
+      * **Individual tools:** `rye run black .` or `rye run ruff check --fix .`
   * **CI/Nox Integration (S0.4, S0.5):** Formatters run in check mode (e.g., `black --check .`) and linters run in CI/Nox to fail builds on violations.
 
 **4. Type Checking (MyPy - S0.3):**
