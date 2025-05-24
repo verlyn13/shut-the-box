@@ -88,7 +88,8 @@ shut-the-box/                    # Git repo root
 
 ## 🔧 **Technical Notes**
 
-- **Python Environment:** Uses Rye's managed virtual environment consistently
+- **Python Environment:** Uses setup-python@v5 to pre-warm exact version (3.12.9) before Rye
+- **Version Consistency:** CI matches project .python-version exactly to avoid toolchain issues
 - **Quarto Integration:** QUARTO_PYTHON environment variable ensures correct Python interpreter
 - **Working Directories:** Properly configured for monorepo structure
 - **Dependencies:** All required packages (matplotlib, seaborn, jupyter) already added to project
