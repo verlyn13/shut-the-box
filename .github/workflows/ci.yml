@@ -1,5 +1,5 @@
 # GitHub Actions CI for Shut the Box (shut_the_box_sim)
-# Runs Rye-managed lint, typecheck, and test (with coverage) on push/PR.
+# Runs uv-managed lint, typecheck, and test (with coverage) on push/PR.
 name: CI
 
 on:
@@ -17,27 +17,35 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12.9"
-      - name: Setup Rye
-        uses: eifinger/setup-rye@v3
-      - name: Sync dependencies with Rye
-        run: rye sync
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version-file: shut_the_box_sim/.python-version
+          enable-cache: true
+      - name: Restore uv cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('shut_the_box_sim/uv.lock') }}
+      - name: Sync dependencies with uv
+        run: uv sync --dev
         working-directory: shut_the_box_sim
       - name: Install test system dependencies
         run: sudo apt-get update && sudo apt-get install -y python3-dev
-      - name: Show Rye version
-        run: rye --version
+      - name: Show uv version
+        run: uv --version
         working-directory: shut_the_box_sim
       - name: Lint
-        run: rye run lint
+        run: uv run sh scripts/lint.sh
         working-directory: shut_the_box_sim
       - name: Typecheck
-        run: rye run typecheck
+        run: uv run sh scripts/typecheck.sh
         working-directory: shut_the_box_sim
       - name: Test (with coverage)
-        run: rye run test-cov
+        run: uv run pytest --cov=stbsim --cov-report=term-missing --cov-report=html:reports/coverage_html --cov-fail-under=80 tests
         working-directory: shut_the_box_sim
       - name: CLI smoke test
-        run: rye run python -m stbsim.cli --n-games 10 --p1-strategy greedy_max --p2-strategy min_tiles --seed 123
+        run: uv run python -m stbsim.cli --n-games 10 --p1-strategy greedy_max --p2-strategy min_tiles --seed 123
         working-directory: shut_the_box_sim
       - name: Upload coverage html report
         uses: actions/upload-artifact@v4
@@ -54,12 +62,20 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12.9"
-      - name: Setup Rye
-        uses: eifinger/setup-rye@v3
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version-file: shut_the_box_sim/.python-version
+          enable-cache: true
+      - name: Restore uv cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('shut_the_box_sim/uv.lock') }}
       - name: Install Quarto CLI
         uses: quarto-dev/quarto-actions/setup@v2
       - name: Sync dependencies
-        run: rye sync
+        run: uv sync --dev
         working-directory: shut_the_box_sim
       - name: Render Quarto analysis report
         run: |

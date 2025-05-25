@@ -6,9 +6,9 @@
 set -e
 
 echo "INFO: Running Ruff linter..."
-ruff check . --force-exclude
+uv run ruff check . --force-exclude
 
 echo "INFO: Running Black format checker..."
-black --check .
+uv run black --check .
 
 echo "INFO: All lint checks finished successfully."

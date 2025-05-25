@@ -3,7 +3,7 @@
 # It's intended to be run from the shut_the_box_sim/ project root
 
 echo "INFO: Applying Ruff auto-fixes..."
-ruff check . --fix --force-exclude
+uv run ruff check . --fix --force-exclude
 echo "INFO: Formatting with Black..."
-black .
+uv run black .
 echo "INFO: Autofix script finished."

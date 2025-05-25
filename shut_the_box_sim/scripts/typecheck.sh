@@ -6,6 +6,6 @@
 set -e
 
 echo "INFO: Running mypy type checker..."
-mypy src/stbsim tests/test_core.py tests/__init__.py
+uv run mypy src/stbsim tests/test_core.py tests/__init__.py
 
 echo "INFO: Type checking finished successfully."

@@ -15,7 +15,7 @@ requires-python = ">=3.12.9"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.rye]
+[tool.uv]
 managed = true
 dev-dependencies = [
     "pytest>=8.3.5",
@@ -45,25 +45,6 @@ packages = ["src/stbsim"]
 # ------------
 # Pytest config (for src/ layout, coverage, organized test discovery)
 # ------------
-[tool.rye.scripts]
-# All commands assume run from shut_the_box_sim/ project root
-
-# Main scripts (use these for development)
-lint = "sh scripts/lint.sh"
-autofix = "sh scripts/autofix.sh"
-format = "black . ; ruff format ."
-typecheck = "sh scripts/typecheck.sh"
-test = "pytest"
-test-cov = "pytest --cov=stbsim --cov-report=term-missing --cov-report=html:reports/coverage_html --cov-fail-under=80 tests"
-
-# Individual tool access (for direct usage as per DEVELOPMENT_GUIDE.md)
-# Note: Use `rye run python -m mypy src/stbsim tests/test_core.py tests/__init__.py` for direct mypy
-ruff-check = "ruff check . --force-exclude"
-black-check = "black --check ."
-
-# Pre-commit management
-precommit-run = "pre-commit run --all-files"
-precommit-install = "pre-commit install"
 
 # ------------
 # Black configuration
