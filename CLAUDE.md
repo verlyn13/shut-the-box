@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Shut the Box game simulation project with two main components:
 - **Root directory**: Contains project documentation and analysis reports
-- **`shut_the_box_sim/`**: Main Python package (`stbsim`) managed by Rye
+- **`shut_the_box_sim/`**: Main Python package (`stbsim`) managed by uv
 
 **Always work from `shut_the_box_sim/` directory** for all development commands.
 
@@ -17,22 +17,22 @@ This is a Shut the Box game simulation project with two main components:
 cd shut_the_box_sim
 
 # Primary commands (use these first)
-rye run autofix      # Auto-fix formatting/linting (START HERE)
-rye run lint         # Check for remaining issues  
-rye run test         # Run test suite
-rye run typecheck    # Run mypy type checking
+uv run sh scripts/autofix.sh     # Auto-fix formatting/linting (START HERE)
+uv run sh scripts/lint.sh        # Check for remaining issues  
+uv run pytest                    # Run test suite
+uv run sh scripts/typecheck.sh   # Run mypy type checking
 
 # Coverage and pre-commit
-rye run test-cov     # Tests with HTML coverage report
-rye run precommit-run # Run all pre-commit hooks
+uv run pytest --cov=stbsim --cov-report=html  # Tests with HTML coverage report
+uv run pre-commit run --all-files              # Run all pre-commit hooks
 ```
 
 ### Individual Tools
 ```bash
 # Direct tool access
-rye run python -m mypy src/stbsim tests/test_core.py tests/__init__.py
-rye run ruff-check   # Ruff linting only
-rye run black-check  # Black format checking only
+uv run python -m mypy src/stbsim tests/test_core.py tests/__init__.py
+uv run ruff check . --force-exclude   # Ruff linting only
+uv run black --check .                 # Black format checking only
 ```
 
 ## Architecture Overview
@@ -65,10 +65,10 @@ rye run black-check  # Black format checking only
 
 ## CLI and Analysis
 
-- **CLI Tool**: `python -m stbsim.cli` for running simulations
+- **CLI Tool**: `uv run python -m stbsim.cli` for running simulations
 - **Quarto Reports**: Analysis directory contains strategy comparison reports
 - **Golden Run Protection**: CLI outputs are regression-tested against fixtures
 
 ## Migration Context
 
-Currently on branch `feat/uv-migration` - migrating from Rye to UV package manager. The codebase uses modern Python 3.12+ features and maintains strict code quality standards.
+Successfully migrated from Rye to uv package manager. The codebase uses modern Python 3.12+ features and maintains strict code quality standards with uv-managed dependencies.

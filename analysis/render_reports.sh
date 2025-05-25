@@ -1,5 +1,5 @@
 #!/bin/bash
-# Render Quarto reports using the Rye Python environment
+# Render Quarto reports using the uv Python environment
 
 set -e
 

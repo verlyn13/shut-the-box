@@ -11,22 +11,22 @@ A reproducible Shut the Box game simulator & strategy evaluator — with CLI, st
 
 ## Quickstart
 
-### 1. **Clone & Install (with Rye)**
+### 1. **Clone & Install (with uv)**
 ```sh
 git clone <your-repo-url>
 cd shut_the_box_sim
-rye sync
+uv sync --dev
 ```
 
 ### 2. **Run Simulations (CLI)**
 ```sh
-rye run python -m stbsim.cli --n-games 100 --p1-strategy greedy_max --p2-strategy min_tiles --seed 42
+uv run python -m stbsim.cli --n-games 100 --p1-strategy greedy_max --p2-strategy min_tiles --seed 42
 ```
 
 ### 3. **Build Reports (Quarto)**
 ```sh
 cd analysis
-QUARTO_PYTHON=../shut_the_box_sim/.venv/bin/python rye run quarto render strategy_comparison_basic.qmd
+QUARTO_PYTHON=../shut_the_box_sim/.venv/bin/python quarto render strategy_comparison_basic.qmd
 # Or: ./render_reports.sh
 ```
 HTML output appears in `analysis/_output/`.
@@ -34,17 +34,17 @@ HTML output appears in `analysis/_output/`.
 ## Development Workflow
 
 **Essential commands (run after any code changes):**
-- **Auto-fix:** `rye run autofix` ← **Start here!**
-- **Check:** `rye run lint`
-- **Test:** `rye run test`
-- **Typecheck:** `rye run typecheck`
+- **Auto-fix:** `uv run sh scripts/autofix.sh` ← **Start here!**
+- **Check:** `uv run sh scripts/lint.sh`
+- **Test:** `uv run pytest`
+- **Typecheck:** `uv run sh scripts/typecheck.sh`
 
 📖 **See `CODE_STANDARDS.md` for complete formatting and linting standards.**
 - Update CLI golden run:
     ```sh
-    rye run python -m stbsim.cli --n-games 100 --p1-strategy greedy_max --p2-strategy min_tiles --seed 42 \
+    uv run python -m stbsim.cli --n-games 100 --p1-strategy greedy_max --p2-strategy min_tiles --seed 42 \
       | grep -A 10 '==== Summary Stats ====' > tests/fixtures/cli_golden_run_output.txt
-    rye run pytest tests/test_cli_golden.py
+    uv run pytest tests/test_cli_golden.py
     ```
 
 ## Contributing & License

@@ -41,7 +41,7 @@ def extract_summary_block(output):
 def test_cli_golden_run():
     """Checks just the summary block of stbsim CLI output for regressions."""
     result = subprocess.run(
-        ["rye", "run"] + CLI_ARGS, capture_output=True, text=True, check=True
+        ["uv", "run"] + CLI_ARGS, capture_output=True, text=True, check=True
     )
     summary_out = extract_summary_block(result.stdout)
     expected = FIXTURE_PATH.read_text().strip()

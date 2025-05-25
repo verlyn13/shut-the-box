@@ -1,7 +1,7 @@
 """
 stbsim CLI for Shut the Box batch simulations.
 
-Entrypoint: python -m stbsim.cli --help or rye run python -m stbsim.cli --n-games ...
+Entrypoint: python -m stbsim.cli --help or uv run python -m stbsim.cli --n-games ...
 Allows bulk parameterized games, stats, and reproducibility.
 """
 
@@ -46,7 +46,7 @@ def run(
         output_file: If specified, save detailed logs to CSV/Parquet (future)
 
     Example:
-        rye run python -m stbsim.cli --n-games 100 \\
+        uv run python -m stbsim.cli --n-games 100 \\
             --p1-strategy greedy_max --p2-strategy min_tiles --seed 42
     """
     if p1_strategy not in STRATEGY_MAP:

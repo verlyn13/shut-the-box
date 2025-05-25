@@ -34,10 +34,10 @@
 * **Always run the auto-fixer before staging code or opening a PR.**
 * Adopt the following workflow for every code/documentation change:
   ```bash
-  rye run autofix   # Runs auto-fixers (Black/Ruff) over the codebase
-  rye run lint      # Checks for any remaining linting issues
-  rye run typecheck # For type/check compliance
-  rye run test      # For correctness (pytest/golden run)
+  uv run sh scripts/autofix.sh     # Runs auto-fixers (Black/Ruff) over the codebase
+  uv run sh scripts/lint.sh        # Checks for any remaining linting issues
+  uv run sh scripts/typecheck.sh   # For type/check compliance
+  uv run pytest                    # For correctness (pytest/golden run)
   ```
 * This applies to *all new files as well as edits to existing modules,* especially after writing code or applying patches.
 
@@ -55,7 +55,7 @@
 ### 4. Best Practice:
 
 **Habit:**
-Always run the auto-fix (`rye run autofix`) immediately after writing or patching any new/updated file. Do not continue unless formatting and lint all pass cleanly.
+Always run the auto-fix (`uv run sh scripts/autofix.sh`) immediately after writing or patching any new/updated file. Do not continue unless formatting and lint all pass cleanly.
 
 ---
 
@@ -75,12 +75,12 @@ The line-length/linter issues in spring 2025 arose because the project initially
 
 | Command | Purpose |
 |---------|---------|
-| `rye run autofix` | **Auto-fix all formatting and linting issues** |
-| `rye run lint` | Check for remaining linting issues |
-| `rye run format` | Run Black + Ruff formatting |
-| `rye run typecheck` | Run mypy type checking |
-| `rye run test` | Run test suite |
-| `rye run precommit-run` | Run all pre-commit hooks manually |
+| `uv run sh scripts/autofix.sh` | **Auto-fix all formatting and linting issues** |
+| `uv run sh scripts/lint.sh` | Check for remaining linting issues |
+| `uv run black . && uv run ruff format .` | Run Black + Ruff formatting |
+| `uv run sh scripts/typecheck.sh` | Run mypy type checking |
+| `uv run pytest` | Run test suite |
+| `uv run pre-commit run --all-files` | Run all pre-commit hooks manually |
 
 ## Tool Versions (As of May 2025)
 
