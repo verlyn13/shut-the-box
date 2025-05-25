@@ -1,0 +1,217 @@
+---
+title: "Shut-the-Box: AI Strategy Performance Analysis"
+format: html
+execute:
+  echo: false
+  warning: false
+params:
+  n_games: 
+    label: "Number of Games per Strategy:"
+    value: 100
+    input: numeric
+  strategies:
+    label: "AI Strategies to Compare:"
+    value: ["greedy_max", "min_tiles"]
+    input: select
+    choices: ["greedy_max", "min_tiles"]
+  random_seed:
+    label: "Random Seed for Simulations:"
+    value: 42
+    input: numeric
+---
+
+# Introduction
+
+This report analyzes the performance of different AI strategies in the game "Shut the Box". 
+
+**Current Analysis Parameters:**
+- Strategies analyzed: greedy_max, min_tiles
+- Games per strategy: 100
+- Random seed: 42
+
+Each strategy plays against itself for the specified number of games, allowing us to compare their relative effectiveness.
+
+# Simulation Execution
+
+```{python}
+import sys
+import os
+
+# Add the stbsim source to Python path
+project_root = '/home/verlyn13/Projects/shut-the-box/shut_the_box_sim'
+sys.path.insert(0, os.path.join(project_root, 'src'))
+
+import pandas as pd
+from stbsim.simulation import Simulation
+from stbsim.strategies import STRATEGY_MAP
+import random
+
+# Use default parameters for basic version
+n_games = 100
+strategies = ["greedy_max", "min_tiles"]
+random_seed = 42
+
+# Initialize simulation
+sim = Simulation()
+
+# Collect results for all strategies
+all_results = []
+strategy_summaries = []
+
+print(f"Running simulations with {n_games} games per strategy...")
+
+for strategy_name in strategies:
+    print(f"  Running {strategy_name} strategy...")
+    
+    # Run simulation with this strategy for both players
+    results = sim.run(n_games=n_games, 
+                     p1_strategy=strategy_name, 
+                     p2_strategy=strategy_name, 
+                     seed_start=random_seed)
+    
+    # Add strategy info to each result
+    for result in results:
+        result['strategy'] = strategy_name
+        all_results.append(result)
+    
+    # Calculate summary statistics
+    df_strategy = pd.DataFrame(results)
+    
+    # Win rates (since both players use same strategy, should be ~50/50)
+    p1_wins = (df_strategy['winner'] == 'P1').sum()
+    p2_wins = (df_strategy['winner'] == 'P2').sum()
+    
+    # Average scores
+    avg_p1_score = df_strategy['p1_score'].mean()
+    avg_p2_score = df_strategy['p2_score'].mean()
+    avg_score = (avg_p1_score + avg_p2_score) / 2
+    
+    # Shut box frequency
+    shut_box_freq = df_strategy['shut_box'].mean() * 100
+    
+    strategy_summaries.append({
+        'Strategy': strategy_name,
+        'Average Score': f"{avg_score:.2f}",
+        'P1 Win Rate (%)': f"{(p1_wins/n_games)*100:.1f}",
+        'P2 Win Rate (%)': f"{(p2_wins/n_games)*100:.1f}", 
+        'Shut-the-Box Frequency (%)': f"{shut_box_freq:.1f}"
+    })
+
+# Create DataFrames
+df_all = pd.DataFrame(all_results)
+df_summary = pd.DataFrame(strategy_summaries)
+
+print("Simulation completed!")
+```
+
+# Performance Metrics & Analysis
+
+## Overall Performance Summary
+
+```{python}
+from IPython.display import display, Markdown
+
+# Display summary table
+display(Markdown("### Strategy Performance Summary"))
+print(df_summary.to_string(index=False))
+```
+
+## Detailed Analysis
+
+```{python}
+print("\n=== DETAILED STRATEGY ANALYSIS ===\n")
+
+for strategy in strategies:
+    strategy_data = df_all[df_all['strategy'] == strategy]
+    
+    print(f"**{strategy.upper()} STRATEGY:**")
+    print(f"  Total games: {len(strategy_data)}")
+    print(f"  Average P1 score: {strategy_data['p1_score'].mean():.2f}")
+    print(f"  Average P2 score: {strategy_data['p2_score'].mean():.2f}")
+    
+    # Combine P1 and P2 scores for overall distribution
+    all_scores = list(strategy_data['p1_score']) + list(strategy_data['p2_score'])
+    
+    print(f"  Score statistics:")
+    print(f"    - Mean: {sum(all_scores)/len(all_scores):.2f}")
+    print(f"    - Min: {min(all_scores)}")
+    print(f"    - Max: {max(all_scores)}")
+    print(f"    - Std Dev: {pd.Series(all_scores).std():.2f}")
+    
+    print(f"  Shut-the-box rate: {strategy_data['shut_box'].mean()*100:.2f}%")
+    print(f"  Win distribution: P1={strategy_data[strategy_data['winner']=='P1'].shape[0]}, P2={strategy_data[strategy_data['winner']=='P2'].shape[0]}")
+    print()
+```
+
+## Score Distribution Analysis
+
+```{python}
+print("\n=== SCORE DISTRIBUTION COMPARISON ===\n")
+
+# Create score ranges for analysis
+score_ranges = [(0, 0), (1, 5), (6, 15), (16, 30), (31, 45)]
+range_labels = ["Perfect (0)", "Excellent (1-5)", "Good (6-15)", "Average (16-30)", "Poor (31-45)"]
+
+for strategy in strategies:
+    strategy_data = df_all[df_all['strategy'] == strategy]
+    all_scores = list(strategy_data['p1_score']) + list(strategy_data['p2_score'])
+    
+    print(f"**{strategy} Score Distribution:**")
+    
+    for (min_score, max_score), label in zip(score_ranges, range_labels):
+        count = sum(1 for score in all_scores if min_score <= score <= max_score)
+        percentage = (count / len(all_scores)) * 100
+        print(f"  {label}: {count} games ({percentage:.1f}%)")
+    
+    print()
+```
+
+# Conclusion
+
+```{python}
+# Calculate key metrics for comparison
+strategy_metrics = {}
+
+for strategy in strategies:
+    strategy_data = df_all[df_all['strategy'] == strategy]
+    all_scores = list(strategy_data['p1_score']) + list(strategy_data['p2_score'])
+    
+    strategy_metrics[strategy] = {
+        'avg_score': sum(all_scores) / len(all_scores),
+        'shut_box_rate': strategy_data['shut_box'].mean() * 100,
+        'perfect_games': sum(1 for score in all_scores if score == 0)
+    }
+
+# Find best performing strategy by average score (lower is better)
+best_strategy = min(strategy_metrics.keys(), key=lambda s: strategy_metrics[s]['avg_score'])
+best_score = strategy_metrics[best_strategy]['avg_score']
+
+# Find strategy with highest shut-the-box rate
+best_shutbox_strategy = max(strategy_metrics.keys(), key=lambda s: strategy_metrics[s]['shut_box_rate'])
+best_shutbox_rate = strategy_metrics[best_shutbox_strategy]['shut_box_rate']
+
+print(f"=== KEY FINDINGS FROM {n_games} GAMES PER STRATEGY ===\n")
+print(f"🏆 **Best Average Performance:** {best_strategy} (avg score: {best_score:.2f})")
+print(f"📦 **Highest Shut-the-Box Rate:** {best_shutbox_strategy} ({best_shutbox_rate:.1f}%)")
+print(f"🎲 **Random Seed Used:** {random_seed} (for reproducibility)")
+
+print(f"\n**Strategy Comparison:**")
+for strategy in strategies:
+    metrics = strategy_metrics[strategy]
+    print(f"  {strategy}:")
+    print(f"    - Average score: {metrics['avg_score']:.2f}")
+    print(f"    - Shut-the-box rate: {metrics['shut_box_rate']:.1f}%")
+    print(f"    - Perfect games (score=0): {metrics['perfect_games']}")
+```
+
+---
+
+**Report Information:**
+- **Generated using:** Quarto with Python  
+- **Simulation engine:** stbsim package  
+- **Game rules:** Lower scores are better; score of 0 = "shut the box" (perfect game)
+
+**Next Steps:**
+- Add matplotlib/seaborn dependencies for enhanced visualizations
+- Compare strategies head-to-head (different strategies per player)
+- Analyze turn-by-turn decision patterns

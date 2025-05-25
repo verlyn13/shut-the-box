@@ -1,0 +1,7 @@
+==== Summary Stats ====
+p1_win_rate: 0.47
+p2_win_rate: 0.53
+p1_avg_score: 12.59
+p2_avg_score: 8.69
+shut_box_frequency: 0.13
+total_games: 100

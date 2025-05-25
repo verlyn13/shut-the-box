@@ -1,4 +1,4 @@
-from typing import Set, Tuple, Dict, Any
+from typing import Any
 
 
 class TileRack:
@@ -9,17 +9,17 @@ class TileRack:
         tiles_up: The set of tile numbers currently up (available to flip).
     """
 
-    def __init__(self, tiles_up: Set[int] | None = None):
-        self.tiles_up: Set[int] = (
+    def __init__(self, tiles_up: set[int] | None = None):
+        self.tiles_up: set[int] = (
             set(tiles_up) if tiles_up is not None else set(range(1, 10))
         )
 
-    def flip_tiles(self, combo: Tuple[int, ...]) -> None:
+    def flip_tiles(self, combo: tuple[int, ...]) -> None:
         """Flips (removes) the specified tiles if valid."""
         for tile in combo:
             self.tiles_up.remove(tile)
 
-    def is_combo_valid(self, combo: Tuple[int, ...], roll_total: int) -> bool:
+    def is_combo_valid(self, combo: tuple[int, ...], roll_total: int) -> bool:
         """
         Check if combo uses only available tiles and sums to roll_total.
         """
@@ -36,7 +36,7 @@ class TileRack:
         """Returns True if all tiles have been flipped (the box is shut)."""
         return not self.tiles_up
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Serializes the rack state to a dictionary.
         """

@@ -1,9 +1,11 @@
 # Pre-commit config for Shut the Box Sim
 repos:
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.287
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.11
     hooks:
       - id: ruff
+        args: [--fix]
+      - id: ruff-format
   - repo: https://github.com/psf/black
     rev: 24.3.0
     hooks:
