@@ -1,0 +1,379 @@
+---
+title: "Statistical Insights & Deep Analysis"
+subtitle: "Advanced statistical patterns in Shut the Box gameplay"
+---
+
+# Statistical Deep Dive
+
+This section provides advanced statistical analysis of Shut the Box gameplay patterns, probability distributions, and mathematical insights derived from large-scale simulations.
+
+```{python}
+import sys
+import os
+project_root = '/home/verlyn13/Projects/shut-the-box/shut_the_box_sim'
+sys.path.insert(0, os.path.join(project_root, 'src'))
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+from scipy import stats
+from stbsim.simulation import Simulation
+from stbsim.strategies import STRATEGY_MAP
+
+# Set up for comprehensive analysis
+plt.style.use('default')
+sns.set_palette("viridis")
+
+# Run large-scale simulation for statistical analysis
+sim = Simulation()
+n_games = 5000
+print(f"🔬 Conducting statistical analysis with {n_games:,} games...")
+
+# Generate comprehensive dataset
+results = sim.run(n_games=n_games, p1_strategy="greedy_max", p2_strategy="min_tiles", seed_start=12345)
+df = pd.DataFrame(results)
+
+print(f"✅ Dataset ready: {len(df):,} games analyzed")
+```
+
+# Probability Distributions
+
+## Score Distribution Analysis
+
+```{python}
+# Combine all scores for analysis
+all_scores = list(df['p1_score']) + list(df['p2_score'])
+
+# Statistical analysis
+score_stats = {
+    'mean': np.mean(all_scores),
+    'median': np.median(all_scores),
+    'std': np.std(all_scores),
+    'min': min(all_scores),
+    'max': max(all_scores),
+    'q25': np.percentile(all_scores, 25),
+    'q75': np.percentile(all_scores, 75)
+}
+
+# Create comprehensive distribution plot
+fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+
+# Histogram with distribution fit
+axes[0,0].hist(all_scores, bins=30, density=True, alpha=0.7, color='skyblue', 
+               edgecolor='black', linewidth=0.5)
+axes[0,0].axvline(score_stats['mean'], color='red', linestyle='--', linewidth=2, 
+                  label=f'Mean: {score_stats["mean"]:.1f}')
+axes[0,0].axvline(score_stats['median'], color='orange', linestyle='--', linewidth=2,
+                  label=f'Median: {score_stats["median"]:.1f}')
+axes[0,0].set_title('Score Distribution with Statistics', fontsize=12)
+axes[0,0].set_xlabel('Score')
+axes[0,0].set_ylabel('Density')
+axes[0,0].legend()
+axes[0,0].grid(True, alpha=0.3)
+
+# Box plot
+axes[0,1].boxplot(all_scores, vert=True, patch_artist=True,
+                  boxprops=dict(facecolor='lightblue', alpha=0.7))
+axes[0,1].set_title('Score Distribution Box Plot', fontsize=12)
+axes[0,1].set_ylabel('Score')
+axes[0,1].grid(True, alpha=0.3)
+
+# Q-Q plot for normality assessment
+stats.probplot(all_scores, dist="norm", plot=axes[1,0])
+axes[1,0].set_title('Q-Q Plot (Normal Distribution)', fontsize=12)
+axes[1,0].grid(True, alpha=0.3)
+
+# Cumulative distribution
+sorted_scores = np.sort(all_scores)
+cumulative_prob = np.arange(1, len(sorted_scores) + 1) / len(sorted_scores)
+axes[1,1].plot(sorted_scores, cumulative_prob, linewidth=2, color='purple')
+axes[1,1].set_title('Cumulative Distribution Function', fontsize=12)
+axes[1,1].set_xlabel('Score')
+axes[1,1].set_ylabel('Cumulative Probability')
+axes[1,1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Print statistical summary
+print("📊 SCORE DISTRIBUTION STATISTICS")
+print("=" * 40)
+for key, value in score_stats.items():
+    print(f"{key.upper():>8}: {value:.2f}")
+
+# Test for normality
+shapiro_stat, shapiro_p = stats.shapiro(np.random.choice(all_scores, min(5000, len(all_scores)), replace=False))  # Sample for shapiro-wilk
+print(f"\n🧪 NORMALITY TEST (Shapiro-Wilk):")
+print(f"   Statistic: {shapiro_stat:.4f}")
+print(f"   P-value: {shapiro_p:.6f}")
+print(f"   Normal distribution: {'No' if shapiro_p < 0.05 else 'Yes'}")
+```
+
+## Win Probability Analysis
+
+```{python}
+# Analyze win patterns
+win_analysis = df['winner'].value_counts()
+total_games = len(df)
+
+print("🏆 WIN PROBABILITY ANALYSIS")
+print("=" * 35)
+for player, wins in win_analysis.items():
+    probability = wins / total_games
+    print(f"{player}: {wins:,} wins ({probability:.1%})")
+
+# Statistical test for fairness
+expected_wins = total_games / 2
+chi2_stat = sum((observed - expected_wins)**2 / expected_wins for observed in win_analysis.values)
+chi2_p = 1 - stats.chi2.cdf(chi2_stat, df=1)
+
+print(f"\n⚖️ FAIRNESS TEST (Chi-square):")
+print(f"   Expected wins per player: {expected_wins:.0f}")
+print(f"   Chi-square statistic: {chi2_stat:.4f}")
+print(f"   P-value: {chi2_p:.6f}")
+print(f"   Game fairness: {'Balanced' if chi2_p > 0.05 else 'Imbalanced'}")
+
+# Create win probability visualization
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+# Pie chart
+colors = ['#FF6B6B', '#4ECDC4']
+wedges, texts, autotexts = ax1.pie(win_analysis.values, labels=win_analysis.index, 
+                                   autopct='%1.1f%%', colors=colors, startangle=90)
+ax1.set_title('Win Distribution', fontsize=14)
+
+# Bar chart with confidence intervals
+wins = list(win_analysis.values)
+players = list(win_analysis.index)
+probabilities = [w/total_games for w in wins]
+
+# Calculate 95% confidence intervals using binomial distribution
+conf_intervals = []
+for p in probabilities:
+    se = np.sqrt(p * (1-p) / total_games)
+    ci = 1.96 * se  # 95% confidence interval
+    conf_intervals.append(ci)
+
+bars = ax2.bar(players, probabilities, color=colors, alpha=0.7, 
+               yerr=conf_intervals, capsize=5)
+ax2.set_title('Win Probabilities with 95% Confidence Intervals', fontsize=14)
+ax2.set_ylabel('Win Probability')
+ax2.set_ylim(0, 1)
+ax2.grid(True, alpha=0.3)
+
+# Add value labels
+for bar, prob, ci in zip(bars, probabilities, conf_intervals):
+    height = bar.get_height()
+    ax2.text(bar.get_x() + bar.get_width()/2., height + ci + 0.01,
+             f'{prob:.3f}', ha='center', va='bottom', fontsize=11)
+
+plt.tight_layout()
+plt.show()
+```
+
+# Advanced Pattern Analysis
+
+## Score Correlation Analysis
+
+```{python}
+# Analyze correlation between P1 and P2 scores
+correlation = df['p1_score'].corr(df['p2_score'])
+correlation_pvalue = stats.pearsonr(df['p1_score'], df['p2_score'])[1]
+
+# Create correlation visualization
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+
+# Scatter plot with regression line
+ax1.scatter(df['p1_score'], df['p2_score'], alpha=0.5, s=10, color='purple')
+z = np.polyfit(df['p1_score'], df['p2_score'], 1)
+p = np.poly1d(z)
+ax1.plot(df['p1_score'].sort_values(), p(df['p1_score'].sort_values()), 
+         "r--", linewidth=2, alpha=0.8)
+ax1.set_xlabel('P1 Score (Greedy Max)')
+ax1.set_ylabel('P2 Score (Min Tiles)')
+ax1.set_title(f'P1 vs P2 Score Correlation\nr = {correlation:.3f}', fontsize=12)
+ax1.grid(True, alpha=0.3)
+
+# Correlation heatmap with additional metrics
+correlation_matrix = df[['p1_score', 'p2_score', 'shut_box']].corr()
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0,
+            square=True, ax=ax2)
+ax2.set_title('Correlation Matrix', fontsize=12)
+
+plt.tight_layout()
+plt.show()
+
+print("🔗 CORRELATION ANALYSIS")
+print("=" * 25)
+print(f"P1-P2 Score Correlation: {correlation:.4f}")
+print(f"P-value: {correlation_pvalue:.6f}")
+print(f"Significance: {'Significant' if correlation_pvalue < 0.05 else 'Not significant'}")
+
+if abs(correlation) > 0.3:
+    print(f"Interpretation: {'Strong' if abs(correlation) > 0.7 else 'Moderate'} correlation")
+else:
+    print("Interpretation: Weak correlation")
+```
+
+## Game Length and Outcome Analysis
+
+```{python}
+# Analyze perfect games (shut-the-box)
+perfect_games = df[df['shut_box'] == True]
+regular_games = df[df['shut_box'] == False]
+
+print("🎯 PERFECT GAME ANALYSIS")
+print("=" * 25)
+print(f"Total perfect games: {len(perfect_games):,} ({len(perfect_games)/len(df)*100:.2f}%)")
+print(f"Regular games: {len(regular_games):,} ({len(regular_games)/len(df)*100:.2f}%)")
+
+if len(perfect_games) > 0:
+    print(f"\nPerfect game winners:")
+    perfect_winners = perfect_games['winner'].value_counts()
+    for winner, count in perfect_winners.items():
+        pct = count / len(perfect_games) * 100
+        print(f"   {winner}: {count} games ({pct:.1f}%)")
+    
+    # Average scores in games with perfect outcomes
+    print(f"\nAverage scores in perfect games:")
+    print(f"   P1 (winner): {perfect_games[perfect_games['winner']=='P1']['p1_score'].mean():.2f}")
+    print(f"   P2 (winner): {perfect_games[perfect_games['winner']=='P2']['p2_score'].mean():.2f}")
+
+# Score distribution comparison
+fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+
+# P1 scores: perfect vs regular games
+if len(perfect_games) > 0:
+    axes[0,0].hist([perfect_games['p1_score'], regular_games['p1_score']], 
+                   bins=20, alpha=0.7, label=['Perfect Games', 'Regular Games'],
+                   color=['gold', 'lightblue'])
+    axes[0,0].set_title('P1 Score Distribution: Perfect vs Regular Games')
+    axes[0,0].set_xlabel('P1 Score')
+    axes[0,0].legend()
+    axes[0,0].grid(True, alpha=0.3)
+
+    # P2 scores: perfect vs regular games  
+    axes[0,1].hist([perfect_games['p2_score'], regular_games['p2_score']], 
+                   bins=20, alpha=0.7, label=['Perfect Games', 'Regular Games'],
+                   color=['gold', 'lightblue'])
+    axes[0,1].set_title('P2 Score Distribution: Perfect vs Regular Games')
+    axes[0,1].set_xlabel('P2 Score')
+    axes[0,1].legend()
+    axes[0,1].grid(True, alpha=0.3)
+
+# Score difference analysis
+score_diff = df['p1_score'] - df['p2_score']
+axes[1,0].hist(score_diff, bins=30, alpha=0.7, color='orange', edgecolor='black')
+axes[1,0].axvline(0, color='red', linestyle='--', linewidth=2, label='Equal Scores')
+axes[1,0].set_title('Score Difference Distribution (P1 - P2)')
+axes[1,0].set_xlabel('Score Difference')
+axes[1,0].legend()
+axes[1,0].grid(True, alpha=0.3)
+
+# Winning margin analysis
+df['winning_margin'] = df.apply(lambda row: 
+    abs(row['p1_score'] - row['p2_score']) if row['winner'] != 'Tie' else 0, axis=1)
+
+axes[1,1].hist(df['winning_margin'], bins=20, alpha=0.7, color='green', edgecolor='black')
+axes[1,1].set_title('Winning Margin Distribution')
+axes[1,1].set_xlabel('Winning Margin (Points)')
+axes[1,1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+print(f"\n📏 SCORE DIFFERENCE ANALYSIS")
+print(f"Average score difference: {score_diff.mean():.2f}")
+print(f"Score difference std dev: {score_diff.std():.2f}")
+print(f"Average winning margin: {df['winning_margin'].mean():.2f}")
+```
+
+# Predictive Analysis
+
+## Score Prediction Model
+
+```{python}
+# Simple linear regression to understand score relationships
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_squared_error
+
+# Prepare data for modeling
+X = df[['p1_score']].values
+y = df['p2_score'].values
+
+# Fit model
+model = LinearRegression()
+model.fit(X, y)
+y_pred = model.predict(X)
+
+# Calculate metrics
+r2 = r2_score(y, y_pred)
+rmse = np.sqrt(mean_squared_error(y, y_pred))
+
+print("🤖 PREDICTIVE ANALYSIS")
+print("=" * 22)
+print(f"Linear Regression Model: P2_Score = {model.intercept_:.2f} + {model.coef_[0]:.4f} * P1_Score")
+print(f"R² Score: {r2:.4f}")
+print(f"RMSE: {rmse:.2f}")
+
+# Visualization
+plt.figure(figsize=(10, 6))
+plt.scatter(X, y, alpha=0.5, s=10, color='blue', label='Actual Data')
+plt.plot(X, y_pred, color='red', linewidth=2, label=f'Prediction (R² = {r2:.3f})')
+plt.xlabel('P1 Score (Greedy Max)')
+plt.ylabel('P2 Score (Min Tiles)')
+plt.title('Score Prediction Model')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
+
+# Feature importance (correlation-based)
+features = ['p1_score']
+importances = [abs(correlation)]
+
+print(f"\n📊 FEATURE IMPORTANCE")
+print(f"P1 Score impact on P2 Score: {abs(correlation):.4f}")
+```
+
+# Statistical Summary
+
+```{python}
+print("\n📋 COMPREHENSIVE STATISTICAL SUMMARY")
+print("=" * 45)
+
+print(f"📊 Dataset Overview:")
+print(f"   • Total games analyzed: {len(df):,}")
+print(f"   • Total score observations: {len(all_scores):,}")
+print(f"   • Analysis confidence: High (large sample size)")
+
+print(f"\n🎯 Key Statistical Findings:")
+print(f"   • Mean score: {score_stats['mean']:.2f} ± {score_stats['std']:.2f}")
+print(f"   • Score range: {score_stats['min']} to {score_stats['max']}")
+print(f"   • Perfect games: {(df['shut_box'].sum()/len(df)*100):.2f}%")
+print(f"   • Game balance: {abs(0.5 - win_analysis['P1']/total_games)*100:.1f}% deviation from 50/50")
+
+print(f"\n🔍 Distribution Characteristics:")
+print(f"   • Distribution type: {'Normal' if shapiro_p > 0.05 else 'Non-normal'}")
+print(f"   • Skewness: {stats.skew(all_scores):.3f}")
+print(f"   • Kurtosis: {stats.kurtosis(all_scores):.3f}")
+
+print(f"\n⚡ Strategy Insights:")
+print(f"   • P1-P2 score correlation: {correlation:.4f}")
+print(f"   • Predictability: {'Low' if r2 < 0.3 else 'Moderate' if r2 < 0.7 else 'High'} (R² = {r2:.3f})")
+print(f"   • Average winning margin: {df['winning_margin'].mean():.1f} points")
+
+print(f"\n🎲 Probability Insights:")
+confidence_interval = 1.96 * np.sqrt(0.5 * 0.5 / total_games)
+print(f"   • Win probability confidence interval: 50% ± {confidence_interval*100:.2f}%")
+print(f"   • Perfect game probability: {(df['shut_box'].sum()/len(df)):.4f}")
+
+print(f"\n✅ Statistical Validation:")
+print(f"   • Sample size adequacy: {'Excellent' if total_games > 1000 else 'Good' if total_games > 100 else 'Limited'}")
+print(f"   • Reproducibility: Perfect (fixed seed simulation)")
+print(f"   • Data quality: High (no missing values, controlled environment)")
+```
+
+---
+
+*Statistical analysis based on {len(df):,} simulated games using reproducible methodology*

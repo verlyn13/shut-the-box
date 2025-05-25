@@ -30,3 +30,8 @@ coverage-report/
 profile_default/
 /.cache/
 *.bak
+
+# Jupyter Notebook
+.ipynb_checkpoints
+.jupyter_cache/
+_freeze/

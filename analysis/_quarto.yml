@@ -1,18 +1,63 @@
 project:
-  type: default
-  output-dir: "_output"
+  type: website
+  output-dir: "_site"
+
+website:
+  title: "Shut the Box Simulator"
+  description: "Comprehensive analysis of AI strategies in Shut the Box game simulation"
+  favicon: favicon.ico
+  navbar:
+    title: "🎲 Shut the Box Simulator"
+    left:
+      - href: index.qmd
+        text: "Home"
+      - href: strategy-comparison.qmd
+        text: "Strategy Analysis"
+      - href: statistical-insights.qmd
+        text: "Statistical Insights"
+      - href: simulator-showcase.qmd
+        text: "Simulator Showcase"
+      - href: methodology.qmd
+        text: "Methodology"
+    right:
+      - icon: github
+        href: https://github.com/verlyn13/shut-the-box
+        text: "GitHub"
+
+  sidebar:
+    style: "floating"
+    contents:
+      - section: "Analysis Reports"
+        contents:
+          - href: index.qmd
+            text: "Overview"
+          - href: strategy-comparison.qmd
+            text: "Strategy Performance"
+          - href: statistical-insights.qmd
+            text: "Statistical Analysis"
+          - href: simulator-showcase.qmd
+            text: "Simulator Features"
+      - section: "Technical Details"
+        contents:
+          - href: methodology.qmd
+            text: "Methodology"
 
 format:
   html:
     theme: cosmo
+    css: styles.css
     toc: true
     toc-depth: 3
     code-fold: true
     code-tools: true
-    embed-resources: true
+    number-sections: true
+    fig-width: 10
+    fig-height: 6
+    embed-resources: false
 
 execute:
   echo: false
   warning: false
   error: false
-  cache: false
+  cache: true
+  freeze: auto
